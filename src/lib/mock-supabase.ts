@@ -41,7 +41,7 @@ function scoresValid(row: { [k: string]: unknown }): boolean {
 type Filter = [column: string, value: unknown];
 
 class MealsQuery implements PromiseLike<QueryResult<MealRow[]>> {
-  private op: "select" | "insert" = "select";
+  private op: "select" | "insert" | "delete" = "select";
   private rows: Array<Record<string, unknown>> = [];
   private filters: Filter[] = [];
 
@@ -57,6 +57,11 @@ class MealsQuery implements PromiseLike<QueryResult<MealRow[]>> {
     if (this.op !== "insert") {
       this.op = "select";
     }
+    return this;
+  }
+
+  delete(): this {
+    this.op = "delete";
     return this;
   }
 
@@ -103,6 +108,24 @@ class MealsQuery implements PromiseLike<QueryResult<MealRow[]>> {
         inserted.push(row);
       }
       return { data: inserted, error: null };
+    }
+
+    if (this.op === "delete") {
+      // RLS: the anon client may not delete rows it does not own.
+      // It returns success (no error) but deletes nothing — a silent no-op.
+      if (this.role === "anon") {
+        return { data: [], error: null };
+      }
+      const before = store.length;
+      let remaining = store.slice();
+      for (const [column, value] of this.filters) {
+        remaining = remaining.filter(
+          (r) => (r as unknown as Record<string, unknown>)[column] !== value
+        );
+      }
+      store = remaining;
+      const deleted = store.length !== before ? [] : [];
+      return { data: deleted, error: null };
     }
 
     // select

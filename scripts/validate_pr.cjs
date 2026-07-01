@@ -28,8 +28,8 @@ function requireFile(file, minWords, label) {
 // 1. Pre-code hypothesis.
 requireFile("hypothesis.md", 100, "Pre-code hypothesis");
 
-// 2. All four bug journals.
-for (let i = 1; i <= 4; i++) {
+// 2. All five bug journals.
+for (let i = 1; i <= 5; i++) {
   requireFile(`bug-journal/bug-0${i}.md`, 80, `Bug ${i} journal`);
 }
 
@@ -41,10 +41,10 @@ if (fs.existsSync("SKILL-STATEMENT.md") && fs.readFileSync("SKILL-STATEMENT.md",
 }
 requireFile("ai-session-log.md", 20, "ai-session-log.md");
 
-// 4. All four tests unlocked (present in the live test folder).
-for (let i = 1; i <= 4; i++) {
+// 4. All five tests unlocked (present in the live test folder).
+for (let i = 1; i <= 5; i++) {
   if (!fs.existsSync(`src/__tests__/bug-0${i}.test.ts`)) {
-    failures.push(`src/__tests__/bug-0${i}.test.ts is missing \u2014 you have not unlocked all four bugs`);
+    failures.push(`src/__tests__/bug-0${i}.test.ts is missing \u2014 you have not unlocked all five bugs`);
   }
 }
 
@@ -64,7 +64,23 @@ if (fs.existsSync(bug03Path)) {
   }
 }
 
-// 6. PR body sections (only when a PR body is available).
+// 6. Discovery check: Bug 5's test must do more than assert status === 200 on DELETE.
+//    It must read the data back after the delete (to confirm the row is gone) OR assert a non-2xx.
+const bug05Path = "src/__tests__/bug-05.test.ts";
+if (fs.existsSync(bug05Path)) {
+  const bug05 = fs.readFileSync(bug05Path, "utf8");
+  const readsBack = /toContain|\.length\b|not\.toContain|toEqual\(\s*\[\s*\]/i.test(bug05);
+  const assertsReject = /(toBeGreaterThanOrEqual\(\s*4\d\d|toBe\(\s*4\d\d|not\.toBe\(\s*200)/i.test(bug05);
+  if (!readsBack && !assertsReject) {
+    failures.push(
+      "bug-05.test.ts still only checks the status code \u2014 rewrite it to confirm the row was " +
+        "actually deleted (read the list back after DELETE, or assert a non-2xx status). " +
+        "That is the discovery: a 200 is not proof the delete happened."
+    );
+  }
+}
+
+// 8. PR body sections (only when a PR body is available).
 const prBody = process.env.PR_BODY || (fs.existsSync("PR_BODY.md") ? fs.readFileSync("PR_BODY.md", "utf8") : "");
 if (prBody) {
   if (!/why each fix was necessary/i.test(prBody)) {
@@ -74,7 +90,7 @@ if (prBody) {
     failures.push('PR description must include a "Hypothesis" section (what you thought was wrong before editing)');
   }
   if (!/discovery/i.test(prBody)) {
-    failures.push('PR description must include a "Discovery" section (how you found the bug nothing pointed you to)');
+    failures.push('PR description must include a "Discovery" section (how you found the bugs nothing pointed you to \u2014 Bugs 3 and 5)');
   }
 } else {
   console.log("\u2139 No PR body found (PR_BODY env or PR_BODY.md). Skipping PR-section check locally.");

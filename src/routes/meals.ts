@@ -48,3 +48,26 @@ meals.get("/", async (c) => {
   const { data } = await service.from("meals").select("*");
   return c.json({ meals: data ?? [] });
 });
+
+// DELETE /meals/:id — remove one meal by ID.
+//
+// Bug 5 — DISCOVERY. The handler returns 200 OK. The row is not deleted.
+//
+// The anon client's RLS policy for DELETE is the same as for INSERT: it can only
+// affect rows that belong to the authenticated user — and even then, only when
+// the policy has been declared to allow it. On a default Supabase project with
+// standard RLS, the anon client delete is a silent no-op: Supabase returns success
+// with 0 rows affected, and the handler never checks.
+//
+// A test that only asserts `status === 200` will pass — and will not notice the row
+// is still there. This is Bug 5 (discovery): investigate, then rewrite the test.
+meals.delete("/:id", async (c) => {
+  const id = c.req.param("id");
+  const { anon } = getClients();
+
+  // Bug 5: this should use the SERVICE client (which can actually delete the row).
+  // The anon client returns success but deletes nothing — RLS blocks it silently.
+  const { data } = await anon.from("meals").delete().eq("id", id);
+
+  return c.json({ ok: true, deleted: data });
+});

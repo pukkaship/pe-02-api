@@ -72,14 +72,11 @@ You do not fix everything at once. Each fix is documented before the next bug's 
 1. Do the warm-up + reading → fill in `hypothesis.md` → `npm run begin`
 2. Fix Bug 1 → fill in `bug-journal/bug-01.md` → push and open a PR
 3. After your PR merges, the gate bot delivers the next bug's test → fix it → merge again
-4. Repeat through Bug 4. **Bug 3 is a discovery bug** — see below.
+4. Repeat through Bug 5. **Bugs 3 and 5 are discovery bugs** — see below.
 5. Fill in `REFLECTION.md`, `SKILL-STATEMENT.md`, and `ai-session-log.md`
 6. `npm run validate` → open your final pull request
 
-> **The discovery bug (Bug 3).** Its test *passes* when you receive it. That is the point. A test
-> that only checks `status === 200` proves the server answered — not that anything was stored.
-> You have to notice the lie, reproduce it, and rewrite the test to prove what really happened
-> (read the data back, or assert a non-2xx status). The gate checks that you did.
+> **The discovery bugs (Bugs 3 and 5).** Their tests *pass* when you receive them. That is the point. A test that only checks a status code proves the server answered — not that anything actually happened. You have to notice the lie, reproduce the silent failure, and rewrite the test to prove what really happened (read the data back, or assert a non-2xx status). Bug 3: a write that does nothing. Bug 5: a delete that does nothing. The gate checks both.
 
 > **What is actually enforced:** `begin` and `unlock` are local scaffolds that keep you honest —
 > they are not enforced. The real gate is **CI on your pull request** (`npm run validate` +
@@ -88,6 +85,9 @@ You do not fix everything at once. Each fix is documented before the next bug's 
 ---
 
 ## Getting started
+
+Open [`docs/cursor-setup.md`](docs/cursor-setup.md) if you have not set up Cursor yet (rules and
+hooks ship in `.cursor/`).
 
 ```bash
 npm install
@@ -108,7 +108,7 @@ To prove the RLS behaviour against an actual database:
 ## The Cursor rule
 
 You may use Cursor. You may ask it what an error means. You may **not** ask it to fix code you have
-not read. At your weekly sync you will explain each fix — especially how you found Bug 3 — without
+not read. At your weekly sync you will explain each fix — especially how you found Bugs 3 and 5 — without
 looking at your PR.
 
 ## PR requirements (Module 2)
@@ -117,7 +117,7 @@ Your PR description must include:
 
 - **Why each fix was necessary** — one short paragraph per bug, naming the *failure mode*.
 - **Hypothesis** — what you thought was wrong before you started editing.
-- **Discovery** — how you found Bug 3, the bug nothing pointed you to.
+- **Discovery** — how you found Bugs 3 and 5, the bugs nothing pointed you to directly. For each: what superficial signal the original test was checking, what you investigated, and what you rewrote the test to prove instead.
 
 ## Methodology checklist
 
@@ -125,7 +125,7 @@ Your PR description must include:
 - [ ] Smallest change that tests the hypothesis
 - [ ] All CI checks green
 - [ ] PR explains *why*, not just *what*
-- [ ] Discovery section: how you found Bug 3
+- [ ] Discovery section: how you found Bugs 3 and 5
 
 ## What this demonstrates
 
