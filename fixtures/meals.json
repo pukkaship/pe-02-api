@@ -1,0 +1,5 @@
+[
+  { "user_id": "u1", "name": "poha", "carb_score": 3, "protein_score": 2, "fibre_score": 2, "fat_score": 1 },
+  { "user_id": "u1", "name": "dal rice", "carb_score": 3, "protein_score": 3, "fibre_score": 3, "fat_score": 1 },
+  { "user_id": "u2", "name": "masala dosa", "carb_score": 4, "protein_score": 2, "fibre_score": 2, "fat_score": 3 }
+]

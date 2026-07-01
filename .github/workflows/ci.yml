@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+          cache: "npm"
+
+      - name: Install
+        run: npm ci
+
+      - name: Typecheck (strict)
+        run: npm run typecheck
+
+      - name: Tests
+        # The suite uses the in-memory Supabase mock — no external project or secrets needed.
+        run: npm test
+
+      - name: Validate PR artifacts
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: npm run validate

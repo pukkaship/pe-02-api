@@ -1,0 +1,132 @@
+# pe-02-api — A meal-log API
+
+> A service logged every meal a user sent. Every request returned `200 OK`.
+> Weeks later, support noticed some users' history was missing rows — with no error, anywhere.
+> The writes had been going through a client that was never allowed to write.
+> This repo has that bug, and three others like it. You fix them one at a time.
+
+This is **Module 2**. It moves from a local CLI (Module 1) to a real HTTP API backed by a
+database. The one idea is **right access for the job**: read credentials and write credentials
+are different, and using the wrong one fails *silently*.
+
+---
+
+## What it does (once fixed)
+
+A small [Hono](https://hono.dev) API backed by Supabase:
+
+- `POST /meals` — record one meal for the signed-in user.
+- `GET /meals` — return **that user's** meals (and nobody else's).
+
+```bash
+# log a meal
+curl -s -X POST localhost:3000/meals \
+  -H 'content-type: application/json' -H 'authorization: Bearer token-u1' \
+  -d '{"name":"poha","carb_score":3,"protein_score":2,"fibre_score":2,"fat_score":1}'
+
+# read it back
+curl -s localhost:3000/meals -H 'authorization: Bearer token-u1'
+```
+
+## What is broken
+
+- A logged meal returns `200` but sometimes **never actually gets stored** — with no error shown.
+- `GET /meals` answers callers who send **no credentials at all**, and hands back **every** user's
+  data, not just the caller's.
+- A teammate reports: *"meals sometimes don't show up later, but the API always returns 200. I
+  can't reproduce it and I don't know where to look."* That one is yours to track down — nothing
+  will point you at it.
+
+> No real database is required. The test suite runs against an in-memory Supabase mock that models
+> Row-Level Security and a CHECK constraint, so CI is deterministic and offline. If you want to
+> prove it against a real project, see **Run it for real** below.
+
+---
+
+## Warm-up (~1.5h) — before you start Module 2
+
+Return to your **pe-01** repo and extend it:
+
+1. Add a `sodiumLevel` field to the `Meal` interface and to the scorer.
+2. Add one test that exercises the new field.
+3. `npm run typecheck` must still pass.
+
+This reinforces the interface-extension habit from Module 1. Note it in your PR.
+
+---
+
+## Before touching code — reading (~30 min)
+
+1. [`docs/week2-decompose-reading.md`](docs/week2-decompose-reading.md) — decompose a feature into
+   API + data model + access (20 min). Includes the three-bullet artifact for your PR.
+2. [`docs/week2-glossary.md`](docs/week2-glossary.md) — 8 terms + a Flask/Python comparison (10 min).
+
+Then fill in [`hypothesis.md`](hypothesis.md) and run `npm run begin`.
+
+---
+
+## How to proceed — one bug at a time
+
+You do not fix everything at once. Each fix is documented before the next bug's test is revealed.
+
+1. Do the warm-up + reading → fill in `hypothesis.md` → `npm run begin`
+2. Fix Bug 1 → fill in `bug-journal/bug-01.md` → push and open a PR
+3. After your PR merges, the gate bot delivers the next bug's test → fix it → merge again
+4. Repeat through Bug 4. **Bug 3 is a discovery bug** — see below.
+5. Fill in `REFLECTION.md`, `SKILL-STATEMENT.md`, and `ai-session-log.md`
+6. `npm run validate` → open your final pull request
+
+> **The discovery bug (Bug 3).** Its test *passes* when you receive it. That is the point. A test
+> that only checks `status === 200` proves the server answered — not that anything was stored.
+> You have to notice the lie, reproduce it, and rewrite the test to prove what really happened
+> (read the data back, or assert a non-2xx status). The gate checks that you did.
+
+> **What is actually enforced:** `begin` and `unlock` are local scaffolds that keep you honest —
+> they are not enforced. The real gate is **CI on your pull request** (`npm run validate` +
+> typecheck + tests + the AI review). The discipline of doing one bug at a time is yours to keep.
+
+---
+
+## Getting started
+
+```bash
+npm install
+npm run begin    # fails until hypothesis.md is complete
+npm test         # one test fails (Bug 1) — start there
+```
+
+## Run it for real (optional)
+
+To prove the RLS behaviour against an actual database:
+
+1. Create a free [Supabase](https://supabase.com) project.
+2. Run [`supabase/migrations/0001_meals.sql`](supabase/migrations/0001_meals.sql) in its SQL editor.
+3. Copy `.env.example` to `.env`, set `USE_REAL_SUPABASE=1` and the three keys, then `npm start`.
+4. POST a meal with the anon key path and watch the row **not** appear — the same failure the mock
+   models. This is not required to pass CI.
+
+## The Cursor rule
+
+You may use Cursor. You may ask it what an error means. You may **not** ask it to fix code you have
+not read. At your weekly sync you will explain each fix — especially how you found Bug 3 — without
+looking at your PR.
+
+## PR requirements (Module 2)
+
+Your PR description must include:
+
+- **Why each fix was necessary** — one short paragraph per bug, naming the *failure mode*.
+- **Hypothesis** — what you thought was wrong before you started editing.
+- **Discovery** — how you found Bug 3, the bug nothing pointed you to.
+
+## Methodology checklist
+
+- [ ] Hypothesis written before first code change
+- [ ] Smallest change that tests the hypothesis
+- [ ] All CI checks green
+- [ ] PR explains *why*, not just *what*
+- [ ] Discovery section: how you found Bug 3
+
+## What this demonstrates
+
+*Leave blank. You fill this in at the portfolio wrap.*
