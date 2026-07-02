@@ -5,6 +5,9 @@
 // whether your PR can merge. It checks that every required artifact exists and is real, and
 // that the discovery bug (Bug 3) was genuinely reproduced — not left as a status-only test.
 //
+// Incremental flow: the gate bot delivers bug N+1 after bug N merges. CI validates only the
+// milestone reached so far (highest bug-0N.test.ts present), not all five bugs on every PR.
+//
 // PR body: in CI the PR description is passed in via the PR_BODY env var. Locally, you can
 // preview the check by saving your PR text to PR_BODY.md before running.
 
@@ -25,34 +28,49 @@ function requireFile(file, minWords, label) {
   }
 }
 
-// 1. Pre-code hypothesis.
+function highestUnlockedBug() {
+  let n = 0;
+  for (let i = 1; i <= 5; i++) {
+    if (fs.existsSync(`src/__tests__/bug-0${i}.test.ts`)) n = i;
+  }
+  return n;
+}
+
+const currentBug = highestUnlockedBug();
+if (currentBug === 0) {
+  failures.push("No bug tests found in src/__tests__/ \u2014 start with Bug 1");
+} else {
+  console.log(`\u2139 Validating milestone Bug ${currentBug} of 5 (incremental gate-bot flow)`);
+}
+
+// 1. Pre-code hypothesis (every PR).
 requireFile("hypothesis.md", 100, "Pre-code hypothesis");
 
-// 2. All five bug journals.
-for (let i = 1; i <= 5; i++) {
+// 2. Bug journals through the current milestone only.
+for (let i = 1; i <= currentBug; i++) {
   requireFile(`bug-journal/bug-0${i}.md`, 80, `Bug ${i} journal`);
 }
 
-// 3. Reflection + skill statement + AI log.
-requireFile("REFLECTION.md", 30, "REFLECTION.md");
-requireFile("SKILL-STATEMENT.md", 0, "SKILL-STATEMENT.md");
-if (fs.existsSync("SKILL-STATEMENT.md") && fs.readFileSync("SKILL-STATEMENT.md", "utf8").trim().length < 20) {
-  failures.push("SKILL-STATEMENT.md is essentially empty \u2014 fill it in");
+// 3. Capstone artifacts only after Bug 5 is in scope.
+if (currentBug >= 5) {
+  requireFile("REFLECTION.md", 30, "REFLECTION.md");
+  requireFile("SKILL-STATEMENT.md", 0, "SKILL-STATEMENT.md");
+  if (fs.existsSync("SKILL-STATEMENT.md") && fs.readFileSync("SKILL-STATEMENT.md", "utf8").trim().length < 20) {
+    failures.push("SKILL-STATEMENT.md is essentially empty \u2014 fill it in");
+  }
+  requireFile("ai-session-log.md", 20, "ai-session-log.md");
 }
-requireFile("ai-session-log.md", 20, "ai-session-log.md");
 
-// 4. All five tests unlocked (present in the live test folder).
-for (let i = 1; i <= 5; i++) {
+// 4. Tests through the current milestone.
+for (let i = 1; i <= currentBug; i++) {
   if (!fs.existsSync(`src/__tests__/bug-0${i}.test.ts`)) {
-    failures.push(`src/__tests__/bug-0${i}.test.ts is missing \u2014 you have not unlocked all five bugs`);
+    failures.push(`src/__tests__/bug-0${i}.test.ts is missing`);
   }
 }
 
 // 5. Discovery check: Bug 3's test must do more than assert status === 200.
-//    It must read the data back (toContain / .length / not.toContain) OR assert a non-2xx
-//    status (a 4xx/5xx expectation) — the reproduction a status-only test would have missed.
 const bug03Path = "src/__tests__/bug-03.test.ts";
-if (fs.existsSync(bug03Path)) {
+if (currentBug >= 3 && fs.existsSync(bug03Path)) {
   const bug03 = fs.readFileSync(bug03Path, "utf8");
   const readsBack = /toContain|\.length\b|not\.toContain/i.test(bug03);
   const assertsReject = /(toBeGreaterThanOrEqual\(\s*4\d\d|toBe\(\s*4\d\d|not\.toBe\(\s*200)/i.test(bug03);
@@ -65,9 +83,8 @@ if (fs.existsSync(bug03Path)) {
 }
 
 // 6. Discovery check: Bug 5's test must do more than assert status === 200 on DELETE.
-//    It must read the data back after the delete (to confirm the row is gone) OR assert a non-2xx.
 const bug05Path = "src/__tests__/bug-05.test.ts";
-if (fs.existsSync(bug05Path)) {
+if (currentBug >= 5 && fs.existsSync(bug05Path)) {
   const bug05 = fs.readFileSync(bug05Path, "utf8");
   const readsBack = /toContain|\.length\b|not\.toContain|toEqual\(\s*\[\s*\]/i.test(bug05);
   const assertsReject = /(toBeGreaterThanOrEqual\(\s*4\d\d|toBe\(\s*4\d\d|not\.toBe\(\s*200)/i.test(bug05);
@@ -80,16 +97,16 @@ if (fs.existsSync(bug05Path)) {
   }
 }
 
-// 8. PR body sections (only when a PR body is available).
+// 7. PR body sections (only when a PR body is available).
 const prBody = process.env.PR_BODY || (fs.existsSync("PR_BODY.md") ? fs.readFileSync("PR_BODY.md", "utf8") : "");
 if (prBody) {
   if (!/why each fix was necessary/i.test(prBody)) {
     failures.push('PR description must include a section titled "Why each fix was necessary"');
   }
-  if (!/hypothesis/i.test(prBody)) {
+  if (currentBug >= 5 && !/hypothesis/i.test(prBody)) {
     failures.push('PR description must include a "Hypothesis" section (what you thought was wrong before editing)');
   }
-  if (!/discovery/i.test(prBody)) {
+  if (currentBug >= 5 && !/discovery/i.test(prBody)) {
     failures.push('PR description must include a "Discovery" section (how you found the bugs nothing pointed you to \u2014 Bugs 3 and 5)');
   }
 } else {
@@ -103,4 +120,4 @@ if (failures.length > 0) {
   process.exit(1);
 }
 
-console.log("\n\u2713 All required artifacts present. PR validation passed.\n");
+console.log(`\n\u2713 Milestone Bug ${currentBug} validation passed.\n`);
