@@ -66,7 +66,7 @@ This reinforces the interface-extension habit from Module 1. Note it in your PR.
 
 ## Before touching code — reading (~40 min + video)
 
-▶ **[Orientation video — 5 min](https://customer-r5z7zoebyw1di9aq.cloudflarestream.com/d3798102d8a50fae4c343944a3a4ccc3/watch)** — watch first.
+▶ **[Orientation video — 5 min](https://customer-r5z7zoebyw1di9aq.cloudflarestream.com/c38c083c3ed25c009b5d8e7e22e66b22/watch)** — watch first.
 
 1. [`docs/week2-decompose-reading.md`](docs/week2-decompose-reading.md) — decompose a feature into
    API + data model + access (20 min). Includes the three-bullet artifact for your PR.
@@ -89,8 +89,9 @@ You do not fix everything at once. Each fix is documented before the next bug's 
 1. Do the warm-up + reading → fill in `hypothesis.md` → `npm run begin`
 2. Fix Bug 1 → fill in `bug-journal/bug-01.md` → push, open a PR, **merge when CI is green**
 3. Pull `main` — the gate bot delivers the next bug's test → fix it → open a PR → **merge again**
-4. Repeat through Bug 5. **Bugs 3 and 5 are discovery bugs** — see below.
-5. Fill in `REFLECTION.md`, `SKILL-STATEMENT.md`, and `ai-session-log.md`
+4. Repeat through Bug 5. **Bugs 3 and 5 are discovery bugs** — see below. ▶ When Bug 3 arrives:
+   **[Midway video — 33 sec](https://customer-r5z7zoebyw1di9aq.cloudflarestream.com/727be2c430ed86d06e5dc12fb0d206bf/watch)**.
+5. Fill in `REFLECTION.md`, `SKILL-STATEMENT.md`, and `ai-session-log.md`. ▶ **[Exit video — 74 sec](https://customer-r5z7zoebyw1di9aq.cloudflarestream.com/145a9024845ec3fb5978668a0455319c/watch)** — watch before your final PR.
 6. `npm run validate` → open your final pull request → **merge when CI is green**
 
 See [`docs/pull-request-flow.md`](docs/pull-request-flow.md) for the full PR + merge loop.
