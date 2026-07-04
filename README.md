@@ -1,25 +1,30 @@
-# pe-02-api — A meal-log API
+# pe-02-api — Nudge's first live endpoint
 
-> A service logged every meal a user sent. Every request returned `200 OK`.
-> Weeks later, support noticed some users' history was missing rows — with no error, anywhere.
-> The writes had been going through a client that was never allowed to write.
-> This repo has that bug, and three others like it. You fix them one at a time.
+> A service logged every meal a user sent and generated a coaching reply. Every request returned
+> `200 OK`. Weeks later, support noticed some users' history was missing rows — with no error,
+> anywhere. The writes had been going through a client that was never allowed to write, and the
+> coaching reply never noticed. This repo has that bug, and three others like it. You fix them
+> one at a time.
 
-This is **Module 2**. It moves from a local CLI (Module 1) to a real HTTP API backed by a
-database. The one idea is **right access for the job**: read credentials and write credentials
-are different, and using the wrong one fails *silently*.
+This is **Module 2**. The founder wants something live for a demo: wire the app to a model and a
+database. You build Nudge's first real endpoint — someone logs a meal, it's stored, and the coach
+replies. This is Nudge's **review** capability: look at one thing that already happened and say
+something true about it. The one idea is **a boundary is where you stop trusting input** — the
+request body, the database row, and the model's reply are all untrusted until proven, and using
+the wrong access credential fails *silently*.
 
 ---
 
 ## What it does (once fixed)
 
-A small [Hono](https://hono.dev) API backed by Supabase:
+A small [Hono](https://hono.dev) API backed by Supabase, with a coaching reply generated on every
+logged meal:
 
-- `POST /meals` — record one meal for the signed-in user.
+- `POST /meals` — record one meal for the signed-in user and return a coaching reply.
 - `GET /meals` — return **that user's** meals (and nobody else's).
 
 ```bash
-# log a meal
+# log a meal and get a coaching reply
 curl -s -X POST localhost:3000/meals \
   -H 'content-type: application/json' -H 'authorization: Bearer token-u1' \
   -d '{"name":"poha","carb_score":3,"protein_score":2,"fibre_score":2,"fat_score":1}'
@@ -30,16 +35,20 @@ curl -s localhost:3000/meals -H 'authorization: Bearer token-u1'
 
 ## What is broken
 
-- A logged meal returns `200` but sometimes **never actually gets stored** — with no error shown.
+- A logged meal returns `200` with a coaching reply, but sometimes **never actually gets stored** —
+  with no error shown, and the reply sounds completely normal either way.
 - `GET /meals` answers callers who send **no credentials at all**, and hands back **every** user's
   data, not just the caller's.
-- A teammate reports: *"meals sometimes don't show up later, but the API always returns 200. I
-  can't reproduce it and I don't know where to look."* That one is yours to track down — nothing
-  will point you at it.
+- A teammate reports: *"meals sometimes don't show up later, but the API always returns 200 with a
+  reply. I can't reproduce it and I don't know where to look."* That one is yours to track down —
+  nothing will point you at it.
+- Another teammate reports: *"I logged a meal with a quote mark in the name and got back 'Logged!'
+  instead of a real coaching message."* Also yours to track down.
 
-> No real database is required. The test suite runs against an in-memory Supabase mock that models
-> Row-Level Security and a CHECK constraint, so CI is deterministic and offline. If you want to
-> prove it against a real project, see **Run it for real** below.
+> No real database or model call is required. The test suite runs against an in-memory Supabase
+> mock that models Row-Level Security and a CHECK constraint, and a deterministic mock coach
+> (`src/lib/coach.ts`) standing in for the LLM call, so CI is deterministic and offline. If you
+> want to prove the database behaviour against a real project, see **Run it for real** below.
 
 ---
 
@@ -55,13 +64,21 @@ This reinforces the interface-extension habit from Module 1. Note it in your PR.
 
 ---
 
-## Before touching code — reading (~30 min)
+## Before touching code — reading (~40 min + video)
+
+▶ **[Orientation video — 5 min](https://customer-r5z7zoebyw1di9aq.cloudflarestream.com/d3798102d8a50fae4c343944a3a4ccc3/watch)** — watch first.
 
 1. [`docs/week2-decompose-reading.md`](docs/week2-decompose-reading.md) — decompose a feature into
    API + data model + access (20 min). Includes the three-bullet artifact for your PR.
 2. [`docs/week2-glossary.md`](docs/week2-glossary.md) — 8 terms + a Flask/Python comparison (10 min).
+3. [`docs/week2-design-review.md`](docs/week2-design-review.md) — 5 min — the first section of the
+   design review you'll keep building on all program: state & correctness.
+4. [`docs/week2-ai-workflow.md`](docs/week2-ai-workflow.md) — 5 min — formalizing intake, and your
+   first look at a "prompt" (still a mock — treated as a reviewed asset for real starting in
+   Module 5).
 
-Then fill in [`hypothesis.md`](hypothesis.md) and run `npm run begin`.
+Then fill in [`hypothesis.md`](hypothesis.md) (including the new **Design note** section) and run
+`npm run begin`.
 
 ---
 
@@ -70,17 +87,20 @@ Then fill in [`hypothesis.md`](hypothesis.md) and run `npm run begin`.
 You do not fix everything at once. Each fix is documented before the next bug's test is revealed.
 
 1. Do the warm-up + reading → fill in `hypothesis.md` → `npm run begin`
-2. Fix Bug 1 → fill in `bug-journal/bug-01.md` → push and open a PR
-3. After your PR merges, the gate bot delivers the next bug's test → fix it → merge again
+2. Fix Bug 1 → fill in `bug-journal/bug-01.md` → push, open a PR, **merge when CI is green**
+3. Pull `main` — the gate bot delivers the next bug's test → fix it → open a PR → **merge again**
 4. Repeat through Bug 5. **Bugs 3 and 5 are discovery bugs** — see below.
 5. Fill in `REFLECTION.md`, `SKILL-STATEMENT.md`, and `ai-session-log.md`
-6. `npm run validate` → open your final pull request
+6. `npm run validate` → open your final pull request → **merge when CI is green**
 
-> **The discovery bugs (Bugs 3 and 5).** Their tests *pass* when you receive them. That is the point. A test that only checks a status code proves the server answered — not that anything actually happened. You have to notice the lie, reproduce the silent failure, and rewrite the test to prove what really happened (read the data back, or assert a non-2xx status). Bug 3: a write that does nothing. Bug 5: a delete that does nothing. The gate checks both.
+See [`docs/pull-request-flow.md`](docs/pull-request-flow.md) for the full PR + merge loop.
+
+> **The discovery bugs (Bugs 3 and 5).** Their tests *pass* when you receive them. That is the point. A test that only checks a status code proves the server answered — not that anything actually happened. You have to notice the lie, reproduce the silent failure, and rewrite the test to prove what really happened (read the data back, or assert a non-2xx status). Bug 3: a write that does nothing. Bug 5: a coaching reply that silently falls back to a generic message when the model's output can't be parsed. The gate checks both.
 
 > **What is actually enforced:** `begin` and `unlock` are local scaffolds that keep you honest —
 > they are not enforced. The real gate is **CI on your pull request** (`npm run validate` +
-> typecheck + tests + the AI review). The discipline of doing one bug at a time is yours to keep.
+> typecheck + tests). **You click Merge when CI is green** — the gate bot only runs after merge.
+> The AI PR review is advisory and never blocks merge.
 
 ---
 
@@ -90,7 +110,8 @@ Open [`docs/cursor-setup.md`](docs/cursor-setup.md) if you have not set up Curso
 hooks ship in `.cursor/`).
 
 ```bash
-npm install
+node -v          # need 20+ (22 recommended — see .nvmrc)
+npm install      # first time only; re-run after pulling dependency changes
 npm run begin    # fails until hypothesis.md is complete
 npm test         # one test fails (Bug 1) — start there
 ```

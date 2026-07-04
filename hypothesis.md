@@ -18,3 +18,9 @@ Run `npm run begin` when done — it checks this file first.
 ## One question before I start
 
 [your question]
+
+## Design note (see docs/week2-design-review.md)
+
+1. Where does the meal's data live, and what's the *one* path that's allowed to write it?
+2. What does the coaching reply currently assume about the write that already happened?
+3. Is your planned fix the root cause, or does it only address the specific test in front of you?
