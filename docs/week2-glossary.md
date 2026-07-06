@@ -15,9 +15,11 @@ Plain language. No jargon inside the definitions.
   application code cannot leak or corrupt data past it. With RLS on and no insert policy, an
   anon-key insert is simply rejected.
 
-- **auth guard** — A piece of code that runs before a handler and refuses the request (a 401) if
-  there is no valid session. A guard that is written but never applied to the route protects
-  nothing. That is Bug 2.
+- **auth guard** — A piece of code that runs **before the route handler** and refuses the request
+  (typically a 401) if there is no valid session. A guard that is written but never **wired to
+  the route** protects nothing — the handler still runs for every caller. That is Bug 2. In this
+  module the guard is named `requireAuth` in `src/middleware/auth.ts`; exporting it from a file
+  is not enough — the GET /meals route must be configured to run it first.
 
 - **session** — Proof, established by logging in, of who the caller is. The user's identity for a
   request must come from the session, not from a field the caller can set — otherwise anyone can
