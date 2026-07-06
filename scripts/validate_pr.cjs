@@ -82,17 +82,20 @@ if (currentBug >= 3 && fs.existsSync(bug03Path)) {
   }
 }
 
-// 6. Discovery check: Bug 5's test must do more than assert status === 200 on DELETE.
+// 6. Discovery check: Bug 5's test must prove the coaching reply was real, not the silent fallback.
 const bug05Path = "src/__tests__/bug-05.test.ts";
 if (currentBug >= 5 && fs.existsSync(bug05Path)) {
   const bug05 = fs.readFileSync(bug05Path, "utf8");
-  const readsBack = /toContain|\.length\b|not\.toContain|toEqual\(\s*\[\s*\]/i.test(bug05);
+  // Valid rewrites: assert reply is NOT the generic fallback (not.toBe / not.toEqual / not.toContain)
+  // or that the server returns a non-2xx status instead of silently succeeding.
+  const readsBack = /toContain|\.length\b|not\.toContain|not\.toBe|not\.toEqual/i.test(bug05);
   const assertsReject = /(toBeGreaterThanOrEqual\(\s*4\d\d|toBe\(\s*4\d\d|not\.toBe\(\s*200)/i.test(bug05);
   if (!readsBack && !assertsReject) {
     failures.push(
-      "bug-05.test.ts still only checks the status code \u2014 rewrite it to confirm the row was " +
-        "actually deleted (read the list back after DELETE, or assert a non-2xx status). " +
-        "That is the discovery: a 200 is not proof the delete happened."
+      "bug-05.test.ts still only checks the status code \u2014 rewrite it to prove the reply was " +
+        "the real coaching message, not the silent 'Logged!' fallback: assert reply is not the " +
+        "fallback text (e.g. not.toBe / not.toContain 'Logged!'), or assert a non-2xx status. " +
+        "That is the discovery: a 200 is not proof the coaching reply was real."
     );
   }
 }

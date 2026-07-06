@@ -124,7 +124,7 @@ class MealsQuery implements PromiseLike<QueryResult<MealRow[]>> {
         );
       }
       store = remaining;
-      const deleted = store.length !== before ? [] : [];
+      const deleted: MealRow[] = [];
       return { data: deleted, error: null };
     }
 
