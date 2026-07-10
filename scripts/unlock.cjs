@@ -42,7 +42,7 @@ const keywords = {
   2: [/auth|guard|401|session|scope/i],
   3: [/silent|discover|read.?back|reproduc|200/i],      // discovery
   4: [/error|check|destructure|constraint|surface/i],
-  5: [/silent|discover|delete|read.?back|200|gone/i],   // discovery
+  5: [/silent|discover|parse|fallback|Logged|reply|read.?back|200/i],   // discovery
 };
 
 const failures = [];

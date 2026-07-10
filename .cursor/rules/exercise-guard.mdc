@@ -5,7 +5,7 @@ alwaysApply: true
 
 # Student Exercise Guard
 
-Files under `src/` and staged tests under `src/__tests__/tests-staged/` are **student exercises**. Any file containing the comment `@pukkaship-exercise` is also protected.
+Files under `src/` and staged tests under `src/__tests__/` are **student exercises**. Any file containing the comment `@pukkaship-exercise` is also protected.
 
 ## What you MUST NOT do in exercise files
 

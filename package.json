@@ -2,7 +2,7 @@
   "name": "pe-02-api",
   "version": "1.0.0",
   "private": true,
-  "description": "Module 2 — a Hono + Supabase meal-log API. Fix four 'right access for the job' bugs, one gate at a time.",
+  "description": "Module 2 — a Hono + Supabase meal-log API. Fix five 'right access for the job' bugs, one gate at a time.",
   "type": "commonjs",
   "engines": {
     "node": ">=20"

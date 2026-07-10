@@ -68,6 +68,8 @@ This reinforces the interface-extension habit from Module 1. Note it in your PR.
 
 ▶ **[Orientation video — 5 min](https://customer-r5z7zoebyw1di9aq.cloudflarestream.com/c38c083c3ed25c009b5d8e7e22e66b22/watch)** — watch first.
 
+📝 **[Entry quiz — ~5 min](https://pukkaship.dev/module/pe-02/quiz/entry)** — complete this before starting Bug 1. Sign in with GitHub if prompted; you'll return here after.
+
 1. [`docs/week2-decompose-reading.md`](docs/week2-decompose-reading.md) — decompose a feature into
    API + data model + access (20 min). Includes the three-bullet artifact for your PR.
 2. [`docs/week2-glossary.md`](docs/week2-glossary.md) — 8 terms + a Flask/Python comparison (10 min).

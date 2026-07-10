@@ -24,7 +24,7 @@ Green **CI** is the gate. Merge yourself as soon as it passes.
 
 ## PR description
 
-Module 1 requires **"Why each fix was necessary"** in the PR body from Bug 1 onward. CI reads
+Module 2 requires **"Why each fix was necessary"** in the PR body from Bug 1 onward. Bug 3 and Bug 5 PRs must also include a **Discovery** section explaining what the green test was hiding. CI reads
 the description — write it in the PR form on GitHub, not only in a local file.
 
 ## After merge
